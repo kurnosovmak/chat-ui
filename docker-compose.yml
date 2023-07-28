@@ -1,0 +1,18 @@
+version: '3'
+services:
+    vue:
+      container_name: vue
+      build:
+          context: .
+          dockerfile: Dockerfile
+      labels:
+        - traefik.backend=blog
+        - traefik.frontend.rule=Host:chat-up.online
+        - traefik.docker.network=web
+        - traefik.port=80
+      networks:
+        - web
+
+networks:
+  web:
+    external: true
