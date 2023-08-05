@@ -2,6 +2,8 @@ version: '3'
 services:
     vue:
       container_name: vue
+      ports:
+        - 80:80
       build:
           context: .
           dockerfile: Dockerfile
