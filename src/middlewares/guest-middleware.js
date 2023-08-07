@@ -11,7 +11,6 @@ export default class GuestMiddleware {
     }
 
     async check() {
-        console.log('GuestMiddleware: ', this.authAdapter.isAuth() ? 't' : 'f')
         if (this.authAdapter.isAuth()) {
 
             await this.router.push(HOME_ROUTE)

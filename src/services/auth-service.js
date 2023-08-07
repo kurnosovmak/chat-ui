@@ -29,6 +29,15 @@ export class AuthService {
         return true
     }
 
+    async register({email, password, name, family, patronymic}) {
+        return await this.apiAuth.register({email, password, name, family, patronymic})
+    }
+
+
+    async registerCheck(id, key) {
+        return await this.apiAuth.registerCheck(id, key)
+    }
+
     isAuth() {
         return this.authStore.isAuth
     }

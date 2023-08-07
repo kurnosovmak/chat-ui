@@ -20,4 +20,12 @@ export default class AuthAdapter {
     isAuth() {
         return this.authService.isAuth()
     }
+
+    register({email, password, name, family, patronymic}) {
+        return this.authService.register({email, password, name, family, patronymic})
+    }
+
+    registerCheck(id, key) {
+        return this.authService.registerCheck(id, key)
+    }
 }

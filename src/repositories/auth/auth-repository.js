@@ -1,10 +1,15 @@
 const LOGIN_URL = '/auth/login'
 const LOGOUT_URL = '/auth/logout'
+const REGISTER_URL = '/auth/register'
+const REGISTER_CHECK_URL = '/auth/register/email-verify'
 const GOOD_LOGIN_STATUS = 200
-const GOOD_LOGOUT_STATUS = 205
+const GOOD_REGISTER_STATUS = 200
+const GOOD_REGISTER_CHECK_STATUS = 204
+const GOOD_LOGOUT_STATUS = 204
 
 export class AuthRepository {
     #api;
+
     static create(api) {
         return new AuthRepository(api);
     }
@@ -20,32 +25,67 @@ export class AuthRepository {
                 email: email,
                 password: password,
             })
-        }catch (error) {
+        } catch (error) {
             return new Response(null, {message: error.message, statusCode: 'status empty'})
         }
 
         if (response.status !== GOOD_LOGIN_STATUS) {
             return new Response(null, {...response.data, statusCode: response.status})
         }
-        const dataToken  = response.data.data
+        const dataToken = response.data.data
         return new Response(
             new Token(
                 dataToken.accessToken,
                 dataToken.refreshToken,
                 dataToken.expiresIn,
                 dataToken.tokenType,
-                ), null)
+            ), null)
     }
 
     async logout() {
         let response
         try {
             response = await this.#api.post(LOGOUT_URL)
-        }catch (error) {
+        } catch (error) {
             return new Response(null, {message: error.message, statusCode: 'status empty'})
         }
 
         if (response.status !== GOOD_LOGOUT_STATUS) {
+            return new Response(null, {...response.data, statusCode: response.status})
+        }
+        return new Response(null, null)
+    }
+
+    async register({email, password, name, family, patronymic}) {
+        let response
+        try {
+            response = await this.#api.post(REGISTER_URL, {
+                email: email,
+                password: password,
+                name: name,
+                family: family,
+                patronymic: patronymic,
+            })
+        } catch (error) {
+            return new Response(null, {message: error.message, statusCode: 'status empty'})
+        }
+
+        if (response.status !== GOOD_REGISTER_STATUS) {
+            return new Response(null, {...response.data, statusCode: response.status})
+        }
+        const id = response.data.data.id
+        return new Response(id, null)
+    }
+
+    async registerCheck(id, key) {
+        let response
+        try {
+            response = await this.#api.post(REGISTER_CHECK_URL + '/' + key + id)
+        } catch (error) {
+            return new Response(null, {message: error.message, statusCode: 'status empty'})
+        }
+
+        if (response.status !== GOOD_REGISTER_CHECK_STATUS) {
             return new Response(null, {...response.data, statusCode: response.status})
         }
         return new Response(null, null)
@@ -82,9 +122,9 @@ class Response {
 
 export class Token {
     constructor(accessToken, refreshToken, expiresIn, tokenType) {
-        this.accessToken    = accessToken
-        this.refreshToken   = refreshToken
-        this.expiresIn      = expiresIn
-        this.tokenType      = tokenType
+        this.accessToken = accessToken
+        this.refreshToken = refreshToken
+        this.expiresIn = expiresIn
+        this.tokenType = tokenType
     }
 }

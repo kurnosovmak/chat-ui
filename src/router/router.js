@@ -1,27 +1,37 @@
-import Index from "../pages/index.vue";
 import Login from "../pages/auth/login.vue";
+import Register from "../pages/auth/register.vue";
+import MessengerPage from "../pages/messanger/index.vue";
 import {createRouter, createWebHistory} from 'vue-router'
 import GuestMiddleware from "../middlewares/guest-middleware.js";
 import AuthMiddleware from "../middlewares/auth-middleware.js";
 
-export const HOME_ROUTE = '/'
 export const LOGIN_ROUTE = '/login'
-export const REGISTER_ROUTE = '/login'
+export const REGISTER_ROUTE = '/register'
+export const MESSANGER_ROUTE = '/'
+export const HOME_ROUTE = MESSANGER_ROUTE
 export const ERROR_ROUTE = '/login'
 
 const routes = [
-    {
-        path: HOME_ROUTE,
-        component: Index,
-        meta: {
-            middleware: [AuthMiddleware],
-        },
-    },
     {
         path: LOGIN_ROUTE,
         component: Login,
         meta: {
             middleware: [GuestMiddleware],
+        },
+    },
+    {
+        path: REGISTER_ROUTE,
+        component: Register,
+        meta: {
+            middleware: [GuestMiddleware],
+        },
+    },
+    {
+        path: MESSANGER_ROUTE,
+        component: MessengerPage,
+        meta: {
+            middleware: [AuthMiddleware],
+            layout: 'chat',
         },
     },
 ];

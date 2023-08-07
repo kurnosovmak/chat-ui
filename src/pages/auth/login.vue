@@ -3,7 +3,7 @@ import {useApiAuth} from "../../repositories/auth/useApiAuth.js";
 import {ref} from "vue";
 import AuthAdapter from "../../adapters/auth-adapter.js";
 import {useRouter} from "vue-router";
-import {HOME_ROUTE} from "../../router/router.js";
+import {HOME_ROUTE, REGISTER_ROUTE} from "../../router/router.js";
 
 const ApiAuth = useApiAuth()
 const router = useRouter()
@@ -54,6 +54,14 @@ const formLoginEvent = async () => {
                  :disabled="isFormLoading"
                  class="w-full p-4 text-sm bg-gray-50 focus:outline-none border border-gray-200 rounded text-gray-600 disabled:cursor-not-allowed">
         </div>
+        <div>
+          <div class="flex flex-row items-center">
+            <input v-model="formLoginFields.remember" type="checkbox"
+                   :disabled="isFormLoading"
+                   class="focus:ring-orange-500 h-4 w-4 text-orange-600 border-gray-300 rounded disabled:cursor-not-allowed">
+            <label for="comments" class="ml-2 text-sm font-normal text-gray-600">Запомнить это устройство</label>
+          </div>
+        </div>
         <div v-if="errorMessage !== ''">
           <span class="ml-2 text-sm font-normal text-red-600">
             {{errorMessage.charAt(0).toUpperCase() + errorMessage.slice(1)}}
@@ -62,21 +70,19 @@ const formLoginEvent = async () => {
         <div>
           <button type="submit"
                   :disabled="isFormLoading"
-                  class="w-full py-4 bg-blue-600 hover:bg-blue-700 rounded text-sm font-bold text-gray-50 transition duration-200 disabled:opacity-40 disabled:cursor-wait">
+                  class="w-full py-4 bg-orange-500 hover:bg-orange-600 rounded text-sm font-bold text-gray-50 transition duration-200 disabled:opacity-40 disabled:cursor-wait">
             {{!isFormLoading ? 'Войти' : 'Загрузка'}}
           </button>
         </div>
         <div class="flex items-center justify-between">
-          <div class="flex flex-row items-center">
-            <input v-model="formLoginFields.remember" type="checkbox"
-                   :disabled="isFormLoading"
-                   class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded disabled:cursor-not-allowed">
-            <label for="comments" class="ml-2 text-sm font-normal text-gray-600">Запомнить это устройство</label>
+          <div>
+            <router-link class="text-sm text-orange-600 hover:underline" :to="REGISTER_ROUTE">Нет аккаунта?</router-link>
           </div>
           <div>
-            <a class="text-sm text-blue-600 hover:underline" href="#">Forgot password?</a>
+            <a class="text-sm text-orange-600 hover:underline" href="#">Забыли пароль?</a>
           </div>
         </div>
+        <div></div>
       </div>
     </section>
   </form>
