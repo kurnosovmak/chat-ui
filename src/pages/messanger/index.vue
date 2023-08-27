@@ -4,7 +4,6 @@ import ProfileAdapter from "../../adapters/profile-adapter.js";
 import {useAuthStore} from "../../stores/auth.js";
 import {MAX_CHAT_ID, MAX_USER_ID, MIN_CHAT_ID, MIN_USER_ID} from "../../consts/ranges.js";
 import {useConversationsStore} from "../../stores/conversations.js";
-import MessagerViewerComponent from "../../components/messenger/MessagerViewerComponent.vue";
 import MessangerAdapter from "../../adapters/messanger-adapter.js";
 import {useMessangerStore} from "../../stores/messager.js";
 import {useSelectedStore} from "../../stores/selected.js";
