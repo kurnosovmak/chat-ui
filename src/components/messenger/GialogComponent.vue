@@ -1,7 +1,7 @@
 <script setup>
-import message from './message.vue'
+import MessageItem from './MessageItem.vue'
 import {useSelectedStore} from "../../stores/selected.js";
-import {onMounted, reactive, ref, watch} from "vue";
+import {onMounted, ref, watch} from "vue";
 import {useConversationsStore} from "../../stores/conversations.js";
 import MessangerAdapter from "../../adapters/messanger-adapter.js";
 import {useMessangerStore} from "../../stores/messager.js";
@@ -133,7 +133,7 @@ const sendMessage = async () => {
 
     <div id="messages"
          class="h-full flex flex-col space-y-4 p-3 overflow-y-auto scrollbar-thumb-blue scrollbar-thumb-rounded scrollbar-track-blue-lighter scrollbar-w-2 scrolling-touch justify-end">
-      <message v-for="message in Object.values(messageStore.messages[selectedChat.id] ?? {})" :message="message"/>
+      <MessageItem v-for="message in Object.values(messageStore.messages[selectedChat.id] ?? {})" :message="message"/>
     </div>
     <div class="border-t-2 border-gray-200 px-4 pt-4 mb-2 sm:mb-0">
       <div class="relative flex">
