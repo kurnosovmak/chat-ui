@@ -6,6 +6,7 @@ const AuthLocalStorageName = 'token'
 export const useAuthStore = defineStore(AuthStoreName, {
     state: () => {
         return {
+            user: null,
             token: JSON.parse(localStorage.getItem(AuthLocalStorageName)),
         }
     },
@@ -13,6 +14,9 @@ export const useAuthStore = defineStore(AuthStoreName, {
         auth(token) {
             this.token = token
             localStorage.setItem(AuthLocalStorageName, JSON.stringify(token))
+        },
+        setUser(user) {
+            this.user = user
         },
         logout() {
             this.token = null
@@ -22,5 +26,7 @@ export const useAuthStore = defineStore(AuthStoreName, {
     getters: {
         isAuth: (state) => state.token !== null,
         getToken: (state) => state.token,
+        getUser: (state) => state.user,
+        getUserId: (state) => state.user ? state.user.id : null,
     }
 })

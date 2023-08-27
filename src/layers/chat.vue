@@ -2,13 +2,21 @@
 import AuthAdapter from "../adapters/auth-adapter.js";
 import {useRouter} from "vue-router";
 import {ERROR_ROUTE, LOGIN_ROUTE, MESSANGER_ROUTE} from "../router/router.js";
+import ProfileAdapter from "../adapters/profile-adapter.js";
+import {onMounted} from "vue";
 
 const authAdapter = AuthAdapter.create()
+const profileAdapter = ProfileAdapter.create()
 const router = useRouter()
 const logout = () => {
   authAdapter.logout()
   router.push(LOGIN_ROUTE)
 }
+
+onMounted(() => {
+  profileAdapter.me()
+})
+
 </script>
 
 <template>
