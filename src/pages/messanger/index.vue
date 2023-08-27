@@ -6,12 +6,17 @@ import {MAX_CHAT_ID, MAX_USER_ID, MIN_CHAT_ID, MIN_USER_ID} from "../../consts/r
 import {useConversationsStore} from "../../stores/conversations.js";
 import MessagerViewerComponent from "../../components/messenger/MessagerViewerComponent.vue";
 import MessangerAdapter from "../../adapters/messanger-adapter.js";
+import {useMessangerStore} from "../../stores/messager.js";
+import {useSelectedStore} from "../../stores/selected.js";
+import GialogComponent from "../../components/messenger/GialogComponent.vue";
 
 const chats = ref([])
 const searchModel = ref('')
 const selectedChatId = ref(null)
 
 const authStore = useAuthStore()
+const selectedStore = useSelectedStore()
+const messageStore = useMessangerStore()
 const conversationsStore = useConversationsStore()
 
 const getImage = (id) => {
@@ -88,10 +93,12 @@ const clickChat = async (id) => {
   if (MIN_USER_ID <= id && id <= MAX_USER_ID) {
     const resp = await messagerAdapter.createChatWithUser(id)
     selectedChatId.value = resp.data.data[0]
+    selectedStore.setSelectedChat({id: resp.data.data[0]})
   }
 
   if (MIN_CHAT_ID <= id && id <= MAX_CHAT_ID) {
     selectedChatId.value = id
+    selectedStore.setSelectedChat({id: id})
   }
 }
 
@@ -152,7 +159,7 @@ onMounted(async () => {
             <div v-else class="rounded-full h-9 w-9 bg-orange-500"></div>
             <div class="flex flex-col justify-between flex-1">
               <span></span>
-              <span class="text-sm">{{ getTitle(chatId) }}</span>
+              <span class="text-sm truncate max-w-[200px]">{{ getTitle(chatId) }}</span>
               <span class="text-xs opacity-40">Личная переписка</span>
             </div>
             <div>
@@ -163,7 +170,7 @@ onMounted(async () => {
       </div>
 
     </div>
-    <MessagerViewerComponent v-if="selectedChatId !== null" :id="selectedChatId"/>
+    <GialogComponent v-if="selectedChatId !== null"/>
     <div v-else class="flex justify-center items-center flex-1">
       Чат не выбран
     </div>

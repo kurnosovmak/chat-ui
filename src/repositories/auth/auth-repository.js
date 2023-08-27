@@ -1,4 +1,5 @@
 const LOGIN_URL = '/auth/login'
+const REFRESH_URL = '/auth/refresh'
 const LOGOUT_URL = '/auth/logout'
 const REGISTER_URL = '/auth/register'
 const REGISTER_CHECK_URL = '/auth/register/email-verify'
@@ -16,6 +17,29 @@ export class AuthRepository {
 
     constructor(api) {
         this.#api = api
+    }
+
+    async refresh(refreshToken) {
+        let response
+        try {
+            response = await this.#api.post(REFRESH_URL, {
+                refresh_token: refreshToken,
+            })
+        } catch (error) {
+            return new Response(null, {message: error.message, statusCode: 'status empty'})
+        }
+
+        if (response.status !== GOOD_LOGIN_STATUS) {
+            return new Response(null, {...response.data, statusCode: response.status})
+        }
+        const dataToken = response.data.data
+        return new Response(
+            new Token(
+                dataToken.accessToken,
+                dataToken.refreshToken,
+                dataToken.expiresIn,
+                dataToken.tokenType,
+            ), null)
     }
 
     async login(email, password) {

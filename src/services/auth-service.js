@@ -23,6 +23,15 @@ export class AuthService {
         return resp
     }
 
+    async refresh(refreshToken) {
+        const resp = await this.apiAuth.refresh(refreshToken)
+
+        if (resp.isGood()) {
+            this.authStore.auth(resp.data)
+        }
+        return resp
+    }
+
     async logout() {
         this.authStore.logout()
         await this.apiAuth.logout()

@@ -13,6 +13,10 @@ export default class AuthAdapter {
         return this.authService.login(email, password)
     }
 
+    refresh(refreshToken) {
+        return this.authService.refresh(refreshToken)
+    }
+
     logout() {
         return this.authService.logout()
     }

@@ -1,37 +1,54 @@
 <script setup>
-import {onMounted, ref, watch} from "vue";
-import MessangerAdapter from "../../adapters/messanger-adapter.js";
-import {useConversationsStore} from "../../stores/conversations.js";
-import {MAX_CHAT_ID, MAX_USER_ID, MIN_CHAT_ID, MIN_USER_ID} from "../../consts/ranges.js";
-import {useAuthStore} from "../../stores/auth.js";
-import {useMessangerStore} from "../../stores/messager.js";
-import {jsx} from "vue/jsx-runtime";
+import message from './message.vue'
 import {useSelectedStore} from "../../stores/selected.js";
+import {onMounted, reactive, ref, watch} from "vue";
+import {useConversationsStore} from "../../stores/conversations.js";
+import MessangerAdapter from "../../adapters/messanger-adapter.js";
+import {useMessangerStore} from "../../stores/messager.js";
+import {MAX_CHAT_ID, MAX_USER_ID, MIN_CHAT_ID, MIN_USER_ID} from "../../consts/ranges.js";
 import {storeToRefs} from "pinia";
-import Message from "./message.vue";
+import {useAuthStore} from "../../stores/auth.js";
 
-const title = ref('undefined');
-const messageModel = ref('');
+const messagerAdapter = MessangerAdapter.create()
+
 
 const authStore = useAuthStore()
-const conversationsStore = useConversationsStore()
-const messagesStore = useMessangerStore()
 const selectedStore = useSelectedStore()
-
-const messageAdapter = MessangerAdapter.create()
+const conversationsStore = useConversationsStore()
+const messageStore = useMessangerStore()
 
 const {selectedChat} = storeToRefs(selectedStore)
 
-const id = ref(selectedChat.id)
+const messageModel = ref('')
+const history = ref([])
 
-watch(() => selectedChat, async () => {
-  id.value = selectedChat.id
+watch(() => selectedChat, async (newValue) => {
+  await refresh()
+}, { deep: true})
+
+onMounted(async () => {
+  if (selectedChat.value === null || selectedChat.value.id === null) {
+    return
+  }
   await refresh()
 })
 
+const refresh = async () => {
+  console.log('refresh')
+  if (selectedChat.value === null || selectedChat.value.id === null) {
+    return
+  }
+  const chat = conversationsStore.chats[selectedChat.value.id] ?? null
+  if (chat === null) {
+    await messagerAdapter.getChats()
+  }
+  const resp = await messagerAdapter.getHistory(selectedChat.value.id, 0, 100)
+  history.value = Object.values(messageStore.messages[selectedChat.value.id])
+}
+
 const getTitle = () => {
-  if (MIN_USER_ID <= selectedStore.selectedChat.id && selectedStore.selectedChat.id <= MAX_USER_ID) {
-    const user = conversationsStore.users[id] ?? null
+  if (MIN_USER_ID <= selectedChat.value.id && selectedChat.value.id <= MAX_USER_ID) {
+    const user = conversationsStore.users[selectedChat.value.id] ?? null
     if (user === null || user === undefined) {
       return 'undefined';
     }
@@ -39,8 +56,8 @@ const getTitle = () => {
         user.family.charAt(0).toUpperCase() + user.family.slice(1)
   }
 
-  if (MIN_CHAT_ID <= selectedStore.selectedChat.id && selectedStore.selectedChat.id <= MAX_CHAT_ID) {
-    const chat = conversationsStore.chats[id]
+  if (MIN_CHAT_ID <= selectedChat.value.id && selectedChat.value.id <= MAX_CHAT_ID) {
+    const chat = conversationsStore.chats[selectedChat.value.id]
     if (chat === null || chat === undefined) {
       return 'undefined';
     }
@@ -58,27 +75,18 @@ const getTitle = () => {
   }
 }
 
-onMounted(async () => {
-  await refresh()
-})
-
-
-const refresh = async () => {
-  await messageAdapter.getHistory(selectedStore.selectedChat.id, 0, 100)
-  title.value = getTitle()
-}
 
 const sendMessage = async () => {
   const message = messageModel.value
-  const resp = await messageAdapter.sendMessage(selectedStore.selectedChat.id, message)
+  const resp = await messagerAdapter.sendMessage(selectedStore.selectedChat.id, message)
   messageModel.value = ''
-  await messageAdapter.getHistory(selectedStore.selectedChat.id, 100)
+  refresh()
 }
 
 </script>
 
 <template>
-  <div v-if="messagesStore.messages[selectedStore.selectedChat.id]" class="flex-1 p:2 sm:p-6 justify-between flex flex-col h-screen">
+  <div class="flex-1 p:2 sm:p-6 justify-between flex flex-col h-screen">
     <div class="flex sm:items-center justify-between py-3 border-b-2 border-gray-200">
       <div class="relative flex items-center space-x-4">
         <div class="relative">
@@ -93,7 +101,7 @@ const sendMessage = async () => {
         </div>
         <div class="flex flex-col leading-tight">
           <div class="text-2xl mt-1 flex items-center">
-            <span class="text-gray-700 mr-3">{{ title }}</span>
+            <span class="text-gray-700 mr-3 truncate max-w-[400px]">{{ getTitle() }}</span>
           </div>
           <span class="text-gray-700 mr-3 opacity-60">Личная переписка</span>
         </div>
@@ -125,44 +133,8 @@ const sendMessage = async () => {
 
     <div id="messages"
          class="h-full flex flex-col space-y-4 p-3 overflow-y-auto scrollbar-thumb-blue scrollbar-thumb-rounded scrollbar-track-blue-lighter scrollbar-w-2 scrolling-touch justify-end">
-      <message v-for="messageKey in Object.keys(messagesStore.messages[selectedStore.selectedChat.id]??{})" message="" />
-      <div class="chat-message" v-for="messageKey in Object.keys(messagesStore.messages[selectedStore.selectedChat.id]??{})">
-        <div class="flex items-end"
-             :class="{'justify-end': messagesStore.messages[selectedStore.selectedChat.id][messageKey].sender_user === authStore.getUserId}">
-          <div class="flex flex-col space-y-2 text-xs max-w-xs mx-2 items-start"
-               :class="{'order-2': messagesStore.messages[selectedStore.selectedChat.id][messageKey].sender_user !== authStore.getUserId}">
-            <div><span class="px-4 py-2 rounded-lg inline-block"
-                       :class="{'bg-blue-600 text-white': messagesStore.messages[selectedStore.selectedChat.id][messageKey].sender_user === authStore.getUserId,
-                       'bg-gray-300 text-gray-600': messagesStore.messages[selectedStore.selectedChat.id][messageKey].sender_user !== authStore.getUserId}">
-              {{ messagesStore.messages[selectedStore.selectedChat.id][messageKey].body }}
-            </span></div>
-          </div>
-          <img
-              src="https://images.unsplash.com/photo-1549078642-b2ba4bda0cdb?ixlib=rb-1.2.1&amp;ixid=eyJhcHBfaWQiOjEyMDd9&amp;auto=format&amp;fit=facearea&amp;facepad=3&amp;w=144&amp;h=144"
-              alt="My profile" class="w-6 h-6 rounded-full order-1">
-        </div>
-      </div>
+      <message v-for="message in Object.values(messageStore.messages[selectedChat.id] ?? {})" :message="message"/>
     </div>
-
-<!--    <div id="messages"-->
-<!--         class="h-full flex flex-col space-y-4 p-3 overflow-y-auto scrollbar-thumb-blue scrollbar-thumb-rounded scrollbar-track-blue-lighter scrollbar-w-2 scrolling-touch justify-end">-->
-<!--      <div class="chat-message" v-for="messageKey in Object.keys(messagesStore.messages[selectedStore.selectedChat.id]??{})">-->
-<!--        <div class="flex items-end"-->
-<!--             :class="{'justify-end': messagesStore.messages[selectedStore.selectedChat.id][messageKey].sender_user === authStore.getUserId}">-->
-<!--          <div class="flex flex-col space-y-2 text-xs max-w-xs mx-2 items-start"-->
-<!--               :class="{'order-2': messagesStore.messages[selectedStore.selectedChat.id][messageKey].sender_user !== authStore.getUserId}">-->
-<!--            <div><span class="px-4 py-2 rounded-lg inline-block"-->
-<!--                       :class="{'bg-blue-600 text-white': messagesStore.messages[selectedStore.selectedChat.id][messageKey].sender_user === authStore.getUserId,-->
-<!--                       'bg-gray-300 text-gray-600': messagesStore.messages[selectedStore.selectedChat.id][messageKey].sender_user !== authStore.getUserId}">-->
-<!--              {{ messagesStore.messages[selectedStore.selectedChat.id][messageKey].body }}-->
-<!--            </span></div>-->
-<!--          </div>-->
-<!--          <img-->
-<!--              src="https://images.unsplash.com/photo-1549078642-b2ba4bda0cdb?ixlib=rb-1.2.1&amp;ixid=eyJhcHBfaWQiOjEyMDd9&amp;auto=format&amp;fit=facearea&amp;facepad=3&amp;w=144&amp;h=144"-->
-<!--              alt="My profile" class="w-6 h-6 rounded-full order-1">-->
-<!--        </div>-->
-<!--      </div>-->
-<!--    </div>-->
     <div class="border-t-2 border-gray-200 px-4 pt-4 mb-2 sm:mb-0">
       <div class="relative flex">
          <span class="absolute inset-y-0 flex items-center">

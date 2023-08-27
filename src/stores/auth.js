@@ -1,4 +1,5 @@
 import {defineStore} from 'pinia'
+import AuthAdapter from "../adapters/auth-adapter.js";
 
 const AuthStoreName = 'auth'
 const AuthLocalStorageName = 'token'

@@ -4,9 +4,54 @@ import {useAuthStore} from "../../stores/auth.js";
 import {ProfileRepository} from "./profile-repository.js";
 import {useConversationsStore} from "../../stores/conversations.js";
 import {MessagngerRepository} from "./messager-repository.js";
+import AuthAdapter from "../../adapters/auth-adapter.js";
 
+const getAxios = () => {
+    const authStore = useAuthStore()
+    let headers = {
+        Accept: 'application/json',
+    }
+    if(authStore.isAuth) {
+        headers = {
+            ...headers,
+            Authorization: 'Bearer ' +  authStore.token.accessToken,
+        }
+    }
+    const client = axios.create({
+        baseURL: 'https://api.chat-up.online/api/v1',
+        headers: {
+            ...headers
+        },
+    })
 
-// const
+    client.interceptors.response.use(
+        (response) => {
+            return res;
+        },
+        async (error) => {
+            if (error.response) {
+                if (error.response.status === 401 && authStore.isAuth) {
+                    // Do something, call refreshToken() request for example;
+
+                    const authAdapter = AuthAdapter.create()
+                    await authAdapter.refresh()
+                    // return a request
+                    return axios_instance(config);
+                }
+
+                if (error.response.status === ANOTHER_STATUS_CODE) {
+                    // Do something
+                    return Promise.reject(error.response.data);
+                }
+            }
+
+            return Promise.reject(error);
+        }
+    )
+
+    return client
+}
+
 
 export const useApiAuth = () => {
     const authStore = useAuthStore()
