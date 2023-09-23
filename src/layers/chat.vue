@@ -3,11 +3,14 @@ import AuthAdapter from "../adapters/auth-adapter.js";
 import {useRouter} from "vue-router";
 import {ERROR_ROUTE, LOGIN_ROUTE, MESSANGER_ROUTE} from "../router/router.js";
 import ProfileAdapter from "../adapters/profile-adapter.js";
-import {onMounted} from "vue";
+import {onBeforeUnmount, onMounted} from "vue";
+import Echo from "laravel-echo"
+import {useAuthStore} from "../stores/auth.js";
 
 const authAdapter = AuthAdapter.create()
 const profileAdapter = ProfileAdapter.create()
 const router = useRouter()
+
 const logout = () => {
   authAdapter.logout()
   router.push(LOGIN_ROUTE)
@@ -15,7 +18,24 @@ const logout = () => {
 
 onMounted(() => {
   profileAdapter.me()
+  socketInit()
+
 })
+
+onBeforeUnmount(() => {
+  socketClear()
+})
+
+const authStore = useAuthStore();
+
+const socketInit = async () => {
+  await new Promise(r => setTimeout(r, 2000));
+  window.Echo.private('private-laravel_database_users.' + authStore.getUserId)
+      .listen('.users.new-message', (e) => {
+        console.log(e.user);
+      });
+  console.log('socket init')
+}
 
 </script>
 

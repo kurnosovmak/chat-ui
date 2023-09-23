@@ -4,6 +4,7 @@ import MessengerPage from "../pages/messanger/index.vue";
 import {createRouter, createWebHistory} from 'vue-router'
 import GuestMiddleware from "../middlewares/guest-middleware.js";
 import AuthMiddleware from "../middlewares/auth-middleware.js";
+import Components from "../pages/components.vue";
 
 export const LOGIN_ROUTE = '/login'
 export const REGISTER_ROUTE = '/register'
@@ -16,8 +17,14 @@ const routes = [
         path: LOGIN_ROUTE,
         component: Login,
         meta: {
-            middleware: [GuestMiddleware],
+            middleware: [GuestMiddleware ,],
+            layout: 'empty'
         },
+    },
+    {
+        path: '/components',
+        component: Components,
+        meta: {layout: 'empty'},
     },
     {
         path: REGISTER_ROUTE,
@@ -31,7 +38,7 @@ const routes = [
         component: MessengerPage,
         meta: {
             middleware: [AuthMiddleware],
-            layout: 'chat',
+            layout: 'empty'
         },
     },
 ];

@@ -6,6 +6,10 @@ import {useConversationsStore} from "../../stores/conversations.js";
 import {MessagngerRepository} from "./messager-repository.js";
 import AuthAdapter from "../../adapters/auth-adapter.js";
 
+
+const BASE_URL = 'https://api.chat-up.online/api/v1';
+export const BASE_URL_DOMAIN = 'http://test.loc:8080';
+// export const BASE_URL = 'http://test.loc:8080/api/v1';
 const getAxios = () => {
     const authStore = useAuthStore()
     let headers = {
@@ -18,7 +22,7 @@ const getAxios = () => {
         }
     }
     const client = axios.create({
-        baseURL: 'https://api.chat-up.online/api/v1',
+        baseURL: BASE_URL,
         headers: {
             ...headers
         },
@@ -64,7 +68,7 @@ export const useApiAuth = () => {
         }
     }
     return AuthRepository.create(axios.create({
-            baseURL: 'https://api.chat-up.online/api/v1',
+            baseURL: BASE_URL,
             headers: {
                 Accept: 'application/json',
                 ...headers
@@ -83,7 +87,7 @@ export const useApiProfile = () => {
         }
     }
     return ProfileRepository.create(axios.create({
-            baseURL: 'https://api.chat-up.online/api/v1',
+            baseURL: BASE_URL,
             headers: {
                 Accept: 'application/json',
                 ...headers
@@ -104,7 +108,7 @@ export const useApiMessage = () => {
         }
     }
     return MessagngerRepository.create(axios.create({
-            baseURL: 'https://api.chat-up.online/api/v1',
+            baseURL: BASE_URL,
             headers: {
                 Accept: 'application/json',
                 ...headers

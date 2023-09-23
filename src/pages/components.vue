@@ -1,46 +1,14 @@
 <script setup>
-import {useApiAuth} from "../../repositories/auth/useApiAuth.js";
-import {ref} from "vue";
-import AuthAdapter from "../../adapters/auth-adapter.js";
-import {useRouter} from "vue-router";
-import {HOME_ROUTE, REGISTER_ROUTE} from "../../router/router.js";
-import UiInputText from "../../components/ui/input/index.vue";
-import UiButton from "../../components/ui/button/index.vue";
-import UiLabel from "../../components/ui/label/index.vue";
-import UiHeader from "../../components/ui/header/index.vue";
-import UiCheckBox from "../../components/ui/check-box/index.vue";
-
-const ApiAuth = useApiAuth()
-const router = useRouter()
-
-const authAdapter = AuthAdapter.create()
-
-const formLoginFields = ref({
-  email: '',
-  password: '',
-  remember: false,
-})
-
-const isFormLoading = ref(false)
-const errorMessage = ref('')
-
-const formLoginEvent = async () => {
-  isFormLoading.value = true
-
-  const resp = await authAdapter.login(formLoginFields.value.email, formLoginFields.value.password);
-  if(resp.isError()){
-    errorMessage.value = 'Пользователь с такими данными не найден'
-  } else {
-    router.push(HOME_ROUTE)
-  }
-
-  isFormLoading.value = false
-}
+import UiButton from '../components/ui/button/index.vue';
+import UiLabel from '../components/ui/label/index.vue';
+import UiHeader from '../components/ui/header/index.vue';
+import UiInputText from '../components/ui/input/index.vue';
+import UiCheckBox from '../components/ui/check-box/index.vue';
 
 </script>
 
 <template>
-  <form @submit.prevent="formLoginEvent" class="w-full h-full flex flex-col justify-center items-center">
+  <div class="w-full h-full flex flex-col justify-center items-center">
     <div class="w-[374px]">
 
       <div class="flex flex-row gap-[18px] justify-center items-center">
@@ -57,7 +25,7 @@ const formLoginEvent = async () => {
 
       <UiHeader class="mt-5">Вход</UiHeader>
 
-      <UiInputText v-model="formLoginFields.email" :disabled="isFormLoading" required placeholder="email" class="mt-3">
+      <UiInputText required placeholder="email" class="mt-3">
         <template #icon>
           <svg class="absolute top-2 right-3 h-5 w-5 pointer-events-none" xmlns="http://www.w3.org/2000/svg"
                viewBox="0 0 16 16" fill="none">
@@ -68,7 +36,7 @@ const formLoginEvent = async () => {
         </template>
       </UiInputText>
 
-      <UiInputText v-model="formLoginFields.password" :disabled="isFormLoading" required placeholder="пароль" type="password" class="mt-3">
+      <UiInputText required placeholder="пароль" type="password" class="mt-3">
         <template #icon>
           <svg class="absolute top-2 right-3 h-5 w-5 pointer-events-none" xmlns="http://www.w3.org/2000/svg"
                viewBox="0 0 16 16" fill="none">
@@ -80,15 +48,13 @@ const formLoginEvent = async () => {
       </UiInputText>
 
 
-      <UiCheckBox v-model="formLoginFields.remember" :disabled="isFormLoading" class="mt-3">Запомнить это устройство</UiCheckBox>
+      <UiCheckBox class="mt-3">Запомнить это устройство</UiCheckBox>
 
-      <span v-if="errorMessage !== ''" class="text-[12px] text-error leading-[12px] ml-4 mt-3 inline-block">
-        {{errorMessage.charAt(0).toUpperCase() + errorMessage.slice(1)}}
+      <span class="text-[12px] text-error leading-[12px] ml-4 mt-3 inline-block">
+        Ошибка сервера
       </span>
 
-      <UiButton type="submit" class="mt-3" :disabled="isFormLoading">
-        {{!isFormLoading ? 'Войти' : 'Загрузка'}}
-      </UiButton>
+      <UiButton class="mt-3">Войти</UiButton>
       <div class="flex flex-row justify-between mt-4">
         <UiLabel>Нет аккаунта?</UiLabel>
         <UiLabel>Забыли пароль?</UiLabel>
@@ -96,7 +62,7 @@ const formLoginEvent = async () => {
 
       <div class="h-[10vh]"></div>
     </div>
-  </form>
+  </div>
 </template>
 
 <style scoped>

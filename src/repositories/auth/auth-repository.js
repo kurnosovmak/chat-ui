@@ -50,7 +50,7 @@ export class AuthRepository {
                 password: password,
             })
         } catch (error) {
-            return new Response(null, {message: error.message, statusCode: 'status empty'})
+            return new Response(null, {...error.response.data, message: error.message, statusCode: 'status empty'})
         }
 
         if (response.status !== GOOD_LOGIN_STATUS) {

@@ -1,233 +1,66 @@
 <script setup>
-import {onMounted, ref} from "vue";
-import ProfileAdapter from "../../adapters/profile-adapter.js";
-import {useAuthStore} from "../../stores/auth.js";
-import {MAX_CHAT_ID, MAX_USER_ID, MIN_CHAT_ID, MIN_USER_ID} from "../../consts/ranges.js";
-import {useConversationsStore} from "../../stores/conversations.js";
-import MessangerAdapter from "../../adapters/messanger-adapter.js";
-import {useMessangerStore} from "../../stores/messager.js";
-import {useSelectedStore} from "../../stores/selected.js";
-import GialogComponent from "../../components/messenger/GialogComponent.vue";
+import CreateChat from "../../components/messenger/ui/buttons/create-chat.vue";
+import UiInputText from "../../components/ui/input/index.vue";
+import MinUser from "../../components/messenger/ui/user/min-user.vue";
+import Logout from "../../components/messenger/ui/buttons/logout.vue";
+import ChatView from "../../components/messenger/chat-view.vue";
 
-const chats = ref([])
-const searchModel = ref('')
-const selectedChatId = ref(null)
-
-const authStore = useAuthStore()
-const selectedStore = useSelectedStore()
-const messageStore = useMessangerStore()
-const conversationsStore = useConversationsStore()
-
-const getImage = (id) => {
-  if (MIN_USER_ID <= id && id <= MAX_USER_ID) {
-    const user = conversationsStore.users[id] ?? null
-    if (user === null || user === undefined) {
-      return 'undefined';
-    }
-    return user?.image ?? null
-  }
-
-  if (MIN_CHAT_ID <= id && id <= MAX_CHAT_ID) {
-    const chat = conversationsStore.chats[id] ?? null
-    if (chat === null || chat === undefined) {
-      return 'undefined';
-    }
-    // @todo chat title by type chat
-    const userId = chat.first_user_id !== authStore.getUserId
-        ? chat.first_user_id : chat.second_user_id
-    const user = conversationsStore.users[userId] ?? null
-    if (user === null || user === undefined) {
-      return 'undefined';
-    }
-    return user?.image ?? null
-  }
-}
-const getTitle = (id) => {
-  if (MIN_USER_ID <= id && id <= MAX_USER_ID) {
-    const user = conversationsStore.users[id] ?? null
-    if (user === null || user === undefined) {
-      return 'undefined';
-    }
-    return user.name.charAt(0).toUpperCase() + user.name.slice(1) + ' ' +
-        user.family.charAt(0).toUpperCase() + user.family.slice(1)
-  }
-
-  if (MIN_CHAT_ID <= id && id <= MAX_CHAT_ID) {
-    const chat = conversationsStore.chats[id] ?? null
-    if (chat === null || chat === undefined) {
-      return 'undefined';
-    }
-    // @todo chat title by type chat
-    const userId = chat.first_user_id !== authStore.getUserId
-        ? chat.first_user_id : chat.second_user_id
-    const user = conversationsStore.users[userId] ?? null
-    if (user === null || user === undefined) {
-      return 'undefined';
-    }
-    return user.name.charAt(0).toUpperCase() + user.name.slice(1) + ' ' +
-        user.family.charAt(0).toUpperCase() + user.family.slice(1)
-  }
-
-}
-
-const profileAdapter = ProfileAdapter.create()
-const messagerAdapter = MessangerAdapter.create()
-
-const search = async () => {
-  if (searchModel.value.length === 0) {
-    chats.value = []
-    const resp = await messagerAdapter.getChats(true)
-    chats.value = resp.data.data
-    return
-  }
-  const resp = await profileAdapter.search(searchModel.value)
-  let ids = [];
-  resp.data.forEach((user) => {
-    ids.push(user.id)
-  })
-  chats.value = [...ids]
-}
-
-const clickChat = async (id) => {
-  if (MIN_USER_ID <= id && id <= MAX_USER_ID) {
-    const resp = await messagerAdapter.createChatWithUser(id)
-    selectedChatId.value = resp.data.data[0]
-    selectedStore.setSelectedChat({id: resp.data.data[0]})
-  }
-
-  if (MIN_CHAT_ID <= id && id <= MAX_CHAT_ID) {
-    selectedChatId.value = id
-    selectedStore.setSelectedChat({id: id})
-  }
-}
-
-
-onMounted(async () => {
-  const resp = await messagerAdapter.getChats(true)
-  chats.value = resp.data.data
-})
 </script>
 
 <template>
-  <div class="flex-grow flex flex-row min-h-0 w-full h-[100vh]">
-    <div class="text-gray-800 shadow px-2 pt-4 bg-white w-full lg:w-[300px] relative max-h-screen overflow-hidden">
-      <!--      Header messeger -->
-      <div class="w-[calc(100vw-16px)] lg:w-[284px] bg-white z-10 fixed max-w-[inherit] py-1">
-        <div class="flex flex-row w-full justify-between gap-2 ">
-          <div>
-            <select class="text-xs bg-transparent cursor-pointer">
-              <option value="0">Все</option>
-              <option value="0">Чаты</option>
-              <option value="0">Каналы</option>
-              <option value="0">Личные переписки</option>
-            </select>
-          </div>
-          <button
-              class="text-black rounded hover:bg-gray-200 bg-gray-100 w-10 h-8 p-2 md:block">
-            <svg viewBox="0 0 24 24" class="w-full h-full fill-current">
+  <div class="w-full h-full flex flex-row">
+    <div class="h-full w-[300px] bg-white flex flex-col justify-between">
+      <div class="">
+        <div class="flex justify-between p-4">
+          <div class="flex gap-2 items-center">
+            <svg class="h-[28px] w-[28px]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 28" fill="none">
               <path
-                  d="M6.3 12.3l10-10a1 1 0 0 1 1.4 0l4 4a1 1 0 0 1 0 1.4l-10 10a1 1 0 0 1-.7.3H7a1 1 0 0 1-1-1v-4a1 1 0 0 1 .3-.7zM8 16h2.59l9-9L17 4.41l-9 9V16zm10-2a1 1 0 0 1 2 0v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6c0-1.1.9-2 2-2h6a1 1 0 0 1 0 2H4v14h14v-6z"/>
+                  d="M27.9597 19.8726V21.669C27.9597 23.8824 26.1652 25.677 23.9518 25.677H4.04826C1.83458 25.677 0.0403442 23.8824 0.0403442 21.669V19.8726C0.0403442 22.086 1.83458 23.8805 4.04826 23.8805H23.9518C26.1652 23.8805 27.9597 22.086 27.9597 19.8726Z"
+                  fill="#FF9447"/>
+              <path
+                  d="M27.9597 6.33116V18.2256C27.9597 20.439 26.1652 22.2335 23.9518 22.2335H4.04826C1.83458 22.2335 0.0403442 20.439 0.0403442 18.2256V6.33116C0.0403442 4.11776 1.83458 2.32324 4.04826 2.32324H23.9518C26.1652 2.32324 27.9597 4.11776 27.9597 6.33116Z"
+                  fill="#FF9447"/>
             </svg>
-          </button>
+
+            <svg class="w-[114px] h-[16px] mt-0.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 114 16" fill="none">
+              <path
+                  d="M2.05714 12.3956H0V0H3.30549L6.68132 9.37143H6.96264L10.4088 0H13.644V12.3956H11.5868V2.81319H11.3055L7.77143 12.3956H5.8022L2.33846 2.81319H2.05714V12.3956ZM25.0687 7.71868C25.0687 7.89451 25.057 8.11135 25.0335 8.36923H17.6841C17.7779 9.08425 18.0709 9.6586 18.5632 10.0923C19.0555 10.5143 19.6826 10.7253 20.4445 10.7253C20.9603 10.7253 21.4233 10.6256 21.8335 10.4264C22.2555 10.2271 22.5779 9.95751 22.8005 9.61758L24.6995 9.93407C24.3713 10.778 23.8027 11.4286 22.994 11.8857C22.1969 12.3429 21.306 12.5714 20.3214 12.5714C19.4071 12.5714 18.5867 12.3722 17.8599 11.9736C17.1449 11.5634 16.5823 11.0008 16.172 10.2857C15.7735 9.55898 15.5742 8.73846 15.5742 7.82418C15.5742 6.90989 15.7735 6.09524 16.172 5.38022C16.5823 4.65348 17.1449 4.09085 17.8599 3.69231C18.5867 3.28206 19.4071 3.07692 20.3214 3.07692C21.2357 3.07692 22.0504 3.28206 22.7654 3.69231C23.4922 4.09085 24.0548 4.64762 24.4533 5.36264C24.8636 6.06593 25.0687 6.85129 25.0687 7.71868ZM20.3214 4.83517C19.712 4.83517 19.1786 5.01099 18.7214 5.36264C18.276 5.71429 17.9713 6.18901 17.8071 6.78681H22.8709C22.6951 6.20074 22.3786 5.73187 21.9214 5.38022C21.476 5.01685 20.9427 4.83517 20.3214 4.83517ZM30.8816 12.5714C29.9674 12.5714 29.1468 12.3722 28.4201 11.9736C27.6934 11.5634 27.1248 11.0008 26.7146 10.2857C26.316 9.55898 26.1168 8.73846 26.1168 7.82418C26.1168 6.90989 26.316 6.09524 26.7146 5.38022C27.1248 4.65348 27.6934 4.09085 28.4201 3.69231C29.1468 3.28206 29.9674 3.07692 30.8816 3.07692C31.8897 3.07692 32.7805 3.32894 33.5542 3.83297C34.3396 4.32528 34.8963 5.02857 35.2245 5.94286L33.3256 6.25934C33.1264 5.8608 32.8157 5.53846 32.3937 5.29231C31.9835 5.04615 31.5204 4.92308 31.0047 4.92308C30.1842 4.92308 29.516 5.19267 29.0003 5.73187C28.4846 6.27107 28.2267 6.9685 28.2267 7.82418C28.2267 8.67986 28.4846 9.37729 29.0003 9.91648C29.516 10.4557 30.1842 10.7253 31.0047 10.7253C31.544 10.7253 32.0245 10.6022 32.4465 10.356C32.8685 10.0982 33.1849 9.7641 33.3959 9.35385L35.2948 9.67033C34.9666 10.5964 34.3981 11.3113 33.5893 11.8154C32.7805 12.3195 31.878 12.5714 30.8816 12.5714ZM40.9434 12.5714C40.0291 12.5714 39.2087 12.3722 38.4819 11.9736C37.7552 11.5634 37.1867 11.0008 36.7764 10.2857C36.3779 9.55898 36.1786 8.73846 36.1786 7.82418C36.1786 6.90989 36.3779 6.09524 36.7764 5.38022C37.1867 4.65348 37.7552 4.09085 38.4819 3.69231C39.2087 3.28206 40.0291 3.07692 40.9434 3.07692C41.9515 3.07692 42.8423 3.32894 43.6159 3.83297C44.4013 4.32528 44.9581 5.02857 45.2863 5.94286L43.3874 6.25934C43.1881 5.8608 42.8775 5.53846 42.4555 5.29231C42.0453 5.04615 41.5823 4.92308 41.0665 4.92308C40.246 4.92308 39.5779 5.19267 39.0621 5.73187C38.5464 6.27107 38.2885 6.9685 38.2885 7.82418C38.2885 8.67986 38.5464 9.37729 39.0621 9.91648C39.5779 10.4557 40.246 10.7253 41.0665 10.7253C41.6057 10.7253 42.0863 10.6022 42.5082 10.356C42.9302 10.0982 43.2467 9.7641 43.4577 9.35385L45.3566 9.67033C45.0285 10.5964 44.4599 11.3113 43.6511 11.8154C42.8423 12.3195 41.9398 12.5714 40.9434 12.5714ZM55.7349 7.71868C55.7349 7.89451 55.7232 8.11135 55.6998 8.36923H48.3503C48.4441 9.08425 48.7371 9.6586 49.2294 10.0923C49.7218 10.5143 50.3489 10.7253 51.1108 10.7253C51.6265 10.7253 52.0896 10.6256 52.4998 10.4264C52.9217 10.2271 53.2441 9.95751 53.4668 9.61758L55.3657 9.93407C55.0375 10.778 54.469 11.4286 53.6602 11.8857C52.8632 12.3429 51.9723 12.5714 50.9877 12.5714C50.0734 12.5714 49.2529 12.3722 48.5261 11.9736C47.8111 11.5634 47.2485 11.0008 46.8382 10.2857C46.4397 9.55898 46.2404 8.73846 46.2404 7.82418C46.2404 6.90989 46.4397 6.09524 46.8382 5.38022C47.2485 4.65348 47.8111 4.09085 48.5261 3.69231C49.2529 3.28206 50.0734 3.07692 50.9877 3.07692C51.902 3.07692 52.7166 3.28206 53.4316 3.69231C54.1583 4.09085 54.721 4.64762 55.1196 5.36264C55.5298 6.06593 55.7349 6.85129 55.7349 7.71868ZM50.9877 4.83517C50.3781 4.83517 49.8448 5.01099 49.3877 5.36264C48.9423 5.71429 48.6375 6.18901 48.4734 6.78681H53.5371C53.3613 6.20074 53.0448 5.73187 52.5877 5.38022C52.1423 5.01685 51.6089 4.83517 50.9877 4.83517ZM63.4291 6.85714V3.25275H65.4511V12.3956H63.4291V8.7033H59.3324V12.3956H57.3104V3.25275H59.3324V6.85714H63.4291ZM66.7658 15.1209V10.5494H66.9944C67.9321 10.5494 68.4831 9.67619 68.6471 7.92967L69.1043 3.25275H75.8032V10.5494H77.3856V15.1209H75.3636V12.3956H68.7878V15.1209H66.7658ZM73.7812 10.5494V5.0989H70.968L70.6867 7.89451C70.6164 8.60953 70.5167 9.17216 70.3878 9.58242C70.2589 9.99267 70.0771 10.3151 69.8427 10.5494H73.7812ZM91.8457 12.3956H89.2787L86.36 8.75604H85.8853V12.3956H83.9512V8.75604H83.4765L80.5581 12.3956H77.9911L81.8765 7.64835L78.3427 3.25275H80.6636L83.4413 6.8044H83.9512V3.25275H85.8853V6.8044H86.3952L89.1732 3.25275H91.4941L87.96 7.64835L91.8457 12.3956ZM101.614 7.71868C101.614 7.89451 101.603 8.11135 101.579 8.36923H94.2292C94.3237 9.08425 94.616 9.6586 95.1083 10.0923C95.6007 10.5143 96.2281 10.7253 96.9897 10.7253C97.5061 10.7253 97.9688 10.6256 98.3787 10.4264C98.8007 10.2271 99.1237 9.95751 99.3457 9.61758L101.245 9.93407C100.917 10.778 100.348 11.4286 99.5391 11.8857C98.7424 12.3429 97.8512 12.5714 96.8666 12.5714C95.9523 12.5714 95.1325 12.3722 94.4051 11.9736C93.6908 11.5634 93.1281 11.0008 92.7171 10.2857C92.3193 9.55898 92.1193 8.73846 92.1193 7.82418C92.1193 6.90989 92.3193 6.09524 92.7171 5.38022C93.1281 4.65348 93.6908 4.09085 94.4051 3.69231C95.1325 3.28206 95.9523 3.07692 96.8666 3.07692C97.7809 3.07692 98.5963 3.28206 99.3105 3.69231C100.038 4.09085 100.601 4.64762 100.998 5.36264C101.409 6.06593 101.614 6.85129 101.614 7.71868ZM96.8666 4.83517C96.2578 4.83517 95.7237 5.01099 95.2666 5.36264C94.8215 5.71429 94.5171 6.18901 94.3523 6.78681H99.416C99.2402 6.20074 98.9237 5.73187 98.4666 5.38022C98.0215 5.01685 97.4886 4.83517 96.8666 4.83517ZM103.19 16V3.25275H104.702L105.124 4.72967C105.498 4.27253 105.98 3.88572 106.565 3.56923C107.151 3.24102 107.826 3.07692 108.587 3.07692C109.444 3.07692 110.211 3.28206 110.891 3.69231C111.571 4.09085 112.098 4.65348 112.473 5.38022C112.86 6.09524 113.053 6.90989 113.053 7.82418C113.053 8.73846 112.86 9.55898 112.473 10.2857C112.098 11.0008 111.571 11.5634 110.891 11.9736C110.211 12.3722 109.444 12.5714 108.587 12.5714C107.849 12.5714 107.193 12.4249 106.618 12.1319C106.044 11.8271 105.575 11.452 105.212 11.0066V16H103.19ZM108.095 10.7604C108.939 10.7604 109.625 10.4909 110.152 9.95165C110.68 9.40074 110.944 8.69157 110.944 7.82418C110.944 6.95678 110.68 6.25348 110.152 5.71429C109.625 5.16337 108.939 4.88791 108.095 4.88791C107.239 4.88791 106.542 5.16337 106.003 5.71429C105.475 6.25348 105.212 6.95678 105.212 7.82418C105.212 8.69157 105.475 9.40074 106.003 9.95165C106.542 10.4909 107.239 10.7604 108.095 10.7604Z"
+                  fill="#2C2C2C"/>
+            </svg>
+          </div>
+          <CreateChat/>
+        </div>
+
+        <hr class="border-[#D7D8D9] mx-4">
+
+        <UiInputText placeholder="поиск" class="mx-4 mt-4">
+          <template #icon>
+            <svg class="absolute top-2 right-3 h-5 w-5 pointer-events-none" viewBox="0 0 16 16" fill="none"
+                 xmlns="http://www.w3.org/2000/svg">
+              <path
+                  d="M14 14L10.5353 10.5354M10.5353 10.5354C11.473 9.59765 11.9998 8.32583 11.9998 6.9997C11.9998 5.67357 11.473 4.40175 10.5353 3.46403C9.59759 2.52632 8.32577 1.99951 6.99964 1.99951C5.67351 1.99951 4.40169 2.52632 3.46397 3.46403C2.52625 4.40175 1.99945 5.67357 1.99945 6.9997C1.99945 8.32583 2.52625 9.59765 3.46397 10.5354C4.40169 11.4731 5.67351 11.9999 6.99964 11.9999C8.32577 11.9999 9.59759 11.4731 10.5353 10.5354Z"
+                  stroke="#2C2C2C" stroke-opacity="0.4" stroke-width="1.5" stroke-linecap="round"
+                  stroke-linejoin="round"/>
+            </svg>
+          </template>
+        </UiInputText>
+<!--        Тут чаты -->
+        <div class="h-[60px] w-full mt-3">
+
         </div>
       </div>
-
-      <div class="h-[calc(100vh-24px-46px)] lg:h-[calc(100vh-24px)] overflow-y-auto scrollbar pt-12">
-        <div class="flex flex-col ">
-          <!--        поиск -->
-          <div class="h-8 flex flex-row justify-center items-center gap-1.5 mb-2 rounded bg-gray-100 px-1.5">
-          <span class="inline-block">
-              <svg viewBox="0 0 24 24" class="w-4 h-4">
-                  <path class="fill-gray-500"
-                        d="M16.32 14.9l5.39 5.4a1 1 0 0 1-1.42 1.4l-5.38-5.38a8 8 0 1 1 1.41-1.41zM10 16a6 6 0 1 0 0-12 6 6 0 0 0 0 12z"/>
-              </svg>
-            </span>
-            <input class="block rounded px-1 flex-1 bg-transparent placeholder-gray-500"
-                   placeholder="поиск"
-                   v-model="searchModel"
-                   @input="search"
-                   type="text">
-          </div>
-
-          <!--        Чаты каналы и личные переписки-->
-          <div v-for="chatId in chats" :key="chatId"
-               @click="clickChat(chatId)"
-               class="flex flex-row p-1 gap-1.5 h-12 cursor-pointer w-full hover:bg-gray-100 items-center rounded justify-between">
-            <img v-if="getImage(chatId) != null" :src="getImage(chatId)" alt=""
-                 class="rounded-full h-9 w-9">
-            <div v-else class="rounded-full h-9 w-9 bg-orange-500"></div>
-            <div class="flex flex-col justify-between flex-1">
-              <span></span>
-              <span class="text-sm truncate max-w-[200px]">{{ getTitle(chatId) }}</span>
-              <span class="text-xs opacity-40">Личная переписка</span>
-            </div>
-            <div>
-              <!--            <div class="rounded-full px-1.5 py-0.5 bg-orange-500 text-white text-xs">1</div>-->
-            </div>
-          </div>
+      <div>
+        <hr class="border-[#D7D8D9] mx-4">
+        <div class="h-[60px] w-full p-4 flex justify-between">
+          <MinUser name="Александр" family="Курносов" url="https://i.postimg.cc/yNVdpNTb/image.png"/>
+          <Logout/>
         </div>
       </div>
-
     </div>
-    <GialogComponent v-if="selectedChatId !== null"/>
-    <div v-else class="flex justify-center items-center flex-1">
-      Чат не выбран
-    </div>
+    <ChatView class="flex-1"/>
   </div>
 </template>
 
 <style scoped>
-/* can be configured in tailwind.config.js */
-.group:hover .group-hover\:block {
-  display: block;
-}
-
-.hover\:w-64:hover {
-  width: 45%;
-}
-
-
-/* NO NEED THIS CSS - just for custom scrollbar which can also be configured in tailwind.config.js*/
-::-webkit-scrollbar {
-  width: 2px;
-  height: 2px;
-}
-
-::-webkit-scrollbar-button {
-  width: 0px;
-  height: 0px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #2d3748;
-  border: 0px none #ffffff;
-  border-radius: 50px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #2b6cb0;
-}
-
-::-webkit-scrollbar-thumb:active {
-  background: #000000;
-}
-
-::-webkit-scrollbar-track {
-  background: #1a202c;
-  border: 0px none #ffffff;
-  border-radius: 50px;
-}
-
-::-webkit-scrollbar-track:hover {
-  background: #666666;
-}
-
-::-webkit-scrollbar-track:active {
-  background: #333333;
-}
-
-::-webkit-scrollbar-corner {
-  background: transparent;
-}
 
 </style>
